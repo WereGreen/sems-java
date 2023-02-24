@@ -1,0 +1,20 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/sems?useUnicode=true&useSSL=false&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: wsz
+#  security:
+#    user:
+#      name: user
+#      password: 111111
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**Mapper.xml
+wsz:
+  jwt:
+    header: Authorization
+    expire: 604800 # 7天（秒单位）
+    secret: fhi3924uijdiow4911jadwdwih29e2uq
