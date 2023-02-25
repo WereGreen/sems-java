@@ -17,6 +17,10 @@ public interface TbUserService extends IService<TbUser> {
 
     TbUser getByUsername(String username);
 
-
     String getUserAuthorityInfo(String username);
+
+    void clearUserAuthorityInfo(String username);
+
+
+
 }

@@ -5,9 +5,9 @@ import cn.hutool.core.map.MapUtil;
 import com.google.code.kaptcha.Producer;
 import com.wsz.common.lang.Const;
 import com.wsz.common.lang.Result;
+import com.wsz.entity.TbUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import sun.misc.BASE64Encoder;
 
@@ -15,6 +15,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.Principal;
 
 @RestController
 public class AuthController extends BaseController {
@@ -45,6 +46,22 @@ public class AuthController extends BaseController {
                         .build()
         );
 
+    }
+
+    /**
+     * 获取用户信息接口
+     * @param principal
+     * @return
+     */
+    @GetMapping("/tb/userInfo")
+    public Result userInfo() {
+        TbUser tbUser = tbUserService.getByUsername(principal.getName());
+        return Result.suss(MapUtil.builder()
+                .put("username", tbUser.getUsername())
+                .put("name", tbUser.getName())
+                .put("userRole", tbUser.getRole())
+                .map()
+        );
     }
 
 }

@@ -34,6 +34,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
     @Autowired
+    JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
+
+    @Autowired
     UserDetailServiceImpl userDetailService;
 
     @Bean
@@ -63,6 +66,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin()
                 .successHandler(loginSuccessHandler)
                 .failureHandler(loginFailureHandler)
+
+                //登出配置
+                .and()
+                .logout()
+                .logoutSuccessHandler(jwtLogoutSuccessHandler)
 
                 //禁用session
                 .and()

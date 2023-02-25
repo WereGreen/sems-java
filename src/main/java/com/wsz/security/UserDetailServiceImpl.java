@@ -43,11 +43,5 @@ public class UserDetailServiceImpl implements UserDetailsService {
         return AuthorityUtils.commaSeparatedStringToAuthorityList(authority);
     }
 
-//    public String  getUserRole(String username) {
-//
-//        String  role = tbUserService.getUserRole(username);
-//
-//        return role;
-//    }
 
 }
