@@ -38,5 +38,9 @@ public class BaseController {
     TbWarehouseService tbWarehouseService;
 
 
+    @Autowired
+    TbOperateService tbOperateService;
+
+
 
 }

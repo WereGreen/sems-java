@@ -25,6 +25,8 @@ public class TbUse extends BaseEntity{
 
     private static final long serialVersionUID = 1L;
 
+    private int id;
+
     private String name;
 
     private String className;
