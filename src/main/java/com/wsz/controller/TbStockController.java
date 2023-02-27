@@ -22,7 +22,7 @@ import java.util.List;
  * @since 2023-02-20
  */
 @RestController
-@RequestMapping("/tb-stock")
+@RequestMapping("/tb/stock")
 public class TbStockController extends BaseController {
 
     @GetMapping("/info")
