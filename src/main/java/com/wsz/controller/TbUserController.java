@@ -3,8 +3,10 @@ package com.wsz.controller;
 
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.json.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wsz.common.lang.Result;
 import com.wsz.entity.Menu;
+import com.wsz.entity.TbUse;
 import com.wsz.entity.TbUser;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -62,4 +64,19 @@ public class TbUserController extends BaseController {
         );
     }
 
+
+    @GetMapping("/admin")
+    public Result admin(Principal principal) {
+
+        QueryWrapper<TbUser> queryWrapper = new QueryWrapper<>();
+
+        queryWrapper.eq("role","admin");
+
+        List<TbUser> adminList = tbUserService.list(queryWrapper);
+
+        return Result.suss(MapUtil.builder()
+                .put("adminList", adminList)
+                .map()
+        );
+    }
 }

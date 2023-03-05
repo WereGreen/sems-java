@@ -35,6 +35,8 @@ public class TbUse extends BaseEntity{
 
     private Integer num;
 
+    private Integer actualNum;
+
     private String warehouse;
 
     private String reason;
@@ -52,5 +54,12 @@ public class TbUse extends BaseEntity{
     @TableField(exist = false)
     private List<Map<String,String>> equipments = new ArrayList<>();;
 
+    @TableField(exist = false)
+    private Integer useId;
+
+    @TableField(exist = false)
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm",timezone="GMT+8")
+    private LocalDateTime returnTime;
 
 }

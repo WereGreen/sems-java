@@ -42,5 +42,10 @@ public class BaseController {
     TbOperateService tbOperateService;
 
 
+    @Autowired
+    TbDifferenceService tbDifferenceService;
+
+    @Autowired
+    TbDelayService tbDelayService;
 
 }

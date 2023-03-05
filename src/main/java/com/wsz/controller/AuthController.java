@@ -55,6 +55,7 @@ public class AuthController extends BaseController {
      */
     @GetMapping("/tb/userInfo")
     public Result userInfo(Principal principal) {
+
         TbUser tbUser = tbUserService.getByUsername(principal.getName());
         return Result.suss(MapUtil.builder()
                 .put("username", tbUser.getUsername())
