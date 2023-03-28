@@ -4,6 +4,7 @@
 使用技术栈：
 
 前端：vue.js、Ellement-UI、Echarts、Axios等...
+前端地址：https://github.com/WereGreen/sems-vue.git
 
 后端：SpringBoot、Mybatis-plus、SpringSecurity等...
 
