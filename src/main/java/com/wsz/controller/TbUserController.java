@@ -79,4 +79,15 @@ public class TbUserController extends BaseController {
                 .map()
         );
     }
+
+    @GetMapping("/allUser")
+    public Result allUser() {
+
+        List<TbUser> allUserList = tbUserService.list();
+
+        return Result.suss(MapUtil.builder()
+                .put("allUserList", allUserList)
+                .map()
+        );
+    }
 }

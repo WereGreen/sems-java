@@ -1,5 +1,6 @@
 package com.wsz.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -25,5 +26,7 @@ public class TbEquipment extends BaseEntity{
 
     private String equipments;
 
+    @TableField(exist = false)
+    private String oldName;
 
 }
