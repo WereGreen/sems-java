@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.wsz.common.lang.Result;
 import com.wsz.entity.TbClassification;
+import com.wsz.entity.TbOperate;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -53,6 +55,7 @@ public class TbClassificationController extends BaseController {
         );
     }
 
+    @Transactional
     @PostMapping("/revise")
     public Result revise(@RequestBody TbClassification tbClassification) {
 
@@ -64,6 +67,15 @@ public class TbClassificationController extends BaseController {
         updateWrapper.set(TbClassification::getClassName, tbClassification.getClassName());
 
         tbClassificationService.update(null, updateWrapper);
+
+        TbOperate operate = new TbOperate();
+
+        operate.setOperationDate(tbClassification.getOperationDate());
+        operate.setOperationType(tbClassification.getOperationType());
+        operate.setUsername(tbClassification.getUsername());
+        operate.setDetails(tbClassification.getDetails());
+
+        tbOperateService.save(operate);
 
         return Result.suss(200, "修改分类成功！", null);
     }

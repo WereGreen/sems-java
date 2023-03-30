@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import java.time.LocalDate;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -29,11 +30,11 @@ public class TbOperate implements Serializable {
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm",timezone="GMT+8")
-    private LocalDate operationDate;
+    private LocalDateTime operationDate;
 
     private String username;
 
-    private String operationType;
+    private Integer operationType;
 
     private String details;
 

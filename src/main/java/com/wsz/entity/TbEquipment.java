@@ -29,4 +29,13 @@ public class TbEquipment extends BaseEntity{
     @TableField(exist = false)
     private String oldName;
 
+    @TableField(exist = false)
+    private String oldClassName;
+
+    @TableField(exist = false)
+    private Integer oldCombination;
+
+    @TableField(exist = false)
+    private String newEquipments;
+
 }

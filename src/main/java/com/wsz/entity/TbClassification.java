@@ -1,8 +1,12 @@
 package com.wsz.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -22,6 +26,20 @@ public class TbClassification extends BaseEntity {
 
     @TableField(exist = false)
     private String oldName;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm",timezone="GMT+8")
+    @TableField(exist = false)
+    private LocalDateTime operationDate;
+
+    @TableField(exist = false)
+    private Integer operationType;
+
+    @TableField(exist = false)
+    private String details;
+
+    @TableField(exist = false)
+    private String username;
 
 
 }
