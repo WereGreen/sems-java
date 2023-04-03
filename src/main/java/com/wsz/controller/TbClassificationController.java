@@ -72,6 +72,7 @@ public class TbClassificationController extends BaseController {
 
         operate.setOperationDate(tbClassification.getOperationDate());
         operate.setOperationType(tbClassification.getOperationType());
+        operate.setOperationClass(tbClassification.getOperationClass());
         operate.setUsername(tbClassification.getUsername());
         operate.setDetails(tbClassification.getDetails());
 
@@ -80,6 +81,7 @@ public class TbClassificationController extends BaseController {
         return Result.suss(200, "修改分类成功！", null);
     }
 
+    @Transactional
     @PostMapping("/addClass")
     public Result addClass(@RequestBody TbClassification tbClassification) {
 
@@ -90,9 +92,20 @@ public class TbClassificationController extends BaseController {
 
         tbClassificationService.save(addClass);
 
+        TbOperate operate = new TbOperate();
+
+        operate.setOperationDate(tbClassification.getOperationDate());
+        operate.setOperationType(tbClassification.getOperationType());
+        operate.setOperationClass(tbClassification.getOperationClass());
+        operate.setUsername(tbClassification.getUsername());
+        operate.setDetails(tbClassification.getDetails());
+
+        tbOperateService.save(operate);
+
         return Result.suss(200, "添加分类成功！", null);
     }
 
+    @Transactional
     @DeleteMapping("/delete")
     public Result delete(@RequestBody TbClassification tbClassification) {
 
@@ -102,6 +115,15 @@ public class TbClassificationController extends BaseController {
 
         tbClassificationService.remove(queryWrapper);
 
+        TbOperate operate = new TbOperate();
+
+        operate.setOperationDate(tbClassification.getOperationDate());
+        operate.setOperationType(tbClassification.getOperationType());
+        operate.setOperationClass(tbClassification.getOperationClass());
+        operate.setUsername(tbClassification.getUsername());
+        operate.setDetails(tbClassification.getDetails());
+
+        tbOperateService.save(operate);
 
         return Result.suss(200, "删除分类成功！", null);
     }

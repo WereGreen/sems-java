@@ -7,10 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.wsz.common.exception.CaptchaException;
 import com.wsz.common.lang.Result;
-import com.wsz.entity.TbClassification;
-import com.wsz.entity.TbEquipment;
-import com.wsz.entity.TbStock;
-import com.wsz.entity.TbUse;
+import com.wsz.entity.*;
 import com.wsz.service.TbUseService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +39,7 @@ public class TbEquipmentController extends BaseController {
         );
     }
 
+    @Transactional
     @PostMapping("/update")
     public Result update(@RequestBody TbEquipment tbEquipment) {
 
@@ -54,9 +52,20 @@ public class TbEquipmentController extends BaseController {
 
         tbEquipmentService.update(null, updateWrapper);
 
+        TbOperate operate = new TbOperate();
+
+        operate.setOperationDate(tbEquipment.getOperationDate());
+        operate.setOperationType(tbEquipment.getOperationType());
+        operate.setOperationClass(tbEquipment.getOperationClass());
+        operate.setUsername(tbEquipment.getUsername());
+        operate.setDetails(tbEquipment.getDetails());
+
+        tbOperateService.save(operate);
+
         return Result.suss(200, "修改器材分类成功！", null);
     }
 
+    @Transactional
     @PostMapping("/updateEquipment")
     public Result updateEquipment(@RequestBody TbEquipment tbEquipment) {
 
@@ -93,8 +102,17 @@ public class TbEquipmentController extends BaseController {
             updateWrapper.set(TbEquipment::getEquipment, tbEquipment.getEquipment());
         }
 
-
         tbEquipmentService.update(null, updateWrapper);
+
+        TbOperate operate = new TbOperate();
+
+        operate.setOperationDate(tbEquipment.getOperationDate());
+        operate.setOperationType(tbEquipment.getOperationType());
+        operate.setOperationClass(tbEquipment.getOperationClass());
+        operate.setUsername(tbEquipment.getUsername());
+        operate.setDetails(tbEquipment.getDetails());
+
+        tbOperateService.save(operate);
 
         return Result.suss(200, "修改器材成功！", null);
     }
@@ -122,6 +140,7 @@ public class TbEquipmentController extends BaseController {
         );
     }
 
+    @Transactional
     @PostMapping("/addEquipment")
     public Result addEquipment(@RequestBody TbEquipment tbEquipment) {
 
@@ -137,6 +156,16 @@ public class TbEquipmentController extends BaseController {
         }
 
         tbEquipmentService.save(equipment);
+
+        TbOperate operate = new TbOperate();
+
+        operate.setOperationDate(tbEquipment.getOperationDate());
+        operate.setOperationType(tbEquipment.getOperationType());
+        operate.setOperationClass(tbEquipment.getOperationClass());
+        operate.setUsername(tbEquipment.getUsername());
+        operate.setDetails(tbEquipment.getDetails());
+
+        tbOperateService.save(operate);
 
 
         return Result.suss(200, "添加器材成功！", null);
@@ -171,6 +200,16 @@ public class TbEquipmentController extends BaseController {
         queryEquipment.eq("equipment", tbEquipment.getEquipment());
 
         tbEquipmentService.remove(queryEquipment);
+
+        TbOperate operate = new TbOperate();
+
+        operate.setOperationDate(tbEquipment.getOperationDate());
+        operate.setOperationType(tbEquipment.getOperationType());
+        operate.setOperationClass(tbEquipment.getOperationClass());
+        operate.setUsername(tbEquipment.getUsername());
+        operate.setDetails(tbEquipment.getDetails());
+
+        tbOperateService.save(operate);
 
         return Result.suss(200, "删除分类成功！", null);
     }

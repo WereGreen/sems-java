@@ -1,7 +1,12 @@
 package com.wsz.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -17,6 +22,8 @@ public class TbStock extends BaseEntity {
 
     private static final long serialVersionUID = 1L;
 
+    private int id;
+
     private String warehouse;
 
     private String equipment;
@@ -24,6 +31,29 @@ public class TbStock extends BaseEntity {
     private Integer stock;
 
     private Integer totalStock;
+
+    @TableField(exist = false)
+    private String oldWarehouse;
+
+    @TableField(exist = false)
+    private Integer oldTotalStock;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm",timezone="GMT+8")
+    @TableField(exist = false)
+    private LocalDateTime operationDate;
+
+    @TableField(exist = false)
+    private Integer operationType;
+
+    @TableField(exist = false)
+    private String details;
+
+    @TableField(exist = false)
+    private String username;
+
+    @TableField(exist = false)
+    private Integer operationClass;
 
 
 }

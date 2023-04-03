@@ -41,5 +41,8 @@ public class TbClassification extends BaseEntity {
     @TableField(exist = false)
     private String username;
 
+    @TableField(exist = false)
+    private Integer operationClass;
+
 
 }
