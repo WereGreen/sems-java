@@ -8,6 +8,7 @@ import com.wsz.common.exception.CaptchaException;
 import com.wsz.common.lang.Result;
 import com.wsz.entity.TbApply;
 import com.wsz.entity.TbStock;
+import com.wsz.entity.TbUpkeep;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,6 +38,21 @@ public class TbApplyController extends BaseController {
         List<TbApply> applyList = tbApplyService.list(queryWrapper);
 
         System.out.println(applyList);
+
+        return Result.suss(MapUtil.builder()
+                .put("applyList", applyList)
+                .map()
+        );
+    }
+
+    @GetMapping("/countInfo")
+    public Result countInfo(Principal principal) {
+
+        QueryWrapper<TbApply> queryWrapper = new QueryWrapper<>();
+
+        queryWrapper.eq("name", principal.getName());
+
+        List<TbApply> applyList = tbApplyService.list(queryWrapper);
 
         return Result.suss(MapUtil.builder()
                 .put("applyList", applyList)
@@ -194,8 +210,6 @@ public class TbApplyController extends BaseController {
     @Transactional
     @PostMapping("/handle")
     public Result handle(@RequestBody TbApply tbApply) {
-        System.out.println("___________________");
-        System.out.println(tbApply);
 
         LambdaUpdateWrapper<TbApply> updateWrapper = Wrappers.lambdaUpdate();
 
@@ -207,6 +221,7 @@ public class TbApplyController extends BaseController {
 
         tbApplyService.update(null, updateWrapper);
 
+        //如果是同意请求，就做出对应库存处理
         if (tbApply.getState().equals("1")) {
 
             LambdaUpdateWrapper<TbStock> updateStock = Wrappers.lambdaUpdate();
@@ -216,6 +231,7 @@ public class TbApplyController extends BaseController {
 
             TbStock tbStock = tbStockService.getOne(updateStock);
 
+            //如果类型的添加申请，则同意后进行对应库存添加
             if (tbStock == null && tbApply.getClassState().equals("1")) {
                 TbStock addStock = new TbStock();
                 addStock.setWarehouse(tbApply.getWarehouse());
@@ -230,6 +246,7 @@ public class TbApplyController extends BaseController {
 
             Integer stock = tbStock.getStock();
 
+            //如果的维修申请，同意后对对应的器材剩余库存进行减少
             if (tbApply.getClassState().equals("0")) {
 
                 if (stock - tbApply.getNum() < 0) {
@@ -239,6 +256,17 @@ public class TbApplyController extends BaseController {
                 updateStock.set(TbStock::getStock, (stock - tbApply.getNum()));
                 tbStockService.update(updateStock);
 
+                TbUpkeep tbUpkeep = new TbUpkeep();
+                tbUpkeep.setUsername(tbApply.getAuditorName());
+                tbUpkeep.setWarehouse(tbApply.getWarehouse());
+                tbUpkeep.setEquipment(tbApply.getEquipment());
+                tbUpkeep.setNum(tbApply.getNum());
+                tbUpkeep.setState(0);
+                tbUpkeep.setReason(tbApply.getReason());
+                tbUpkeep.setStartDate(tbApply.getAuditorDate());
+
+                tbUpkeepService.save(tbUpkeep);
+
             } else if (tbApply.getClassState().equals("1")) {
 
                 Integer totalStock = tbStock.getTotalStock();
@@ -246,6 +274,7 @@ public class TbApplyController extends BaseController {
                 updateStock.set(TbStock::getTotalStock, (totalStock + tbApply.getNum()));
                 tbStockService.update(updateStock);
 
+                //如果类型是报废，则减少对应器材的库存
             } else if (tbApply.getClassState().equals("-1")) {
 
                 Integer totalStock = tbStock.getTotalStock();

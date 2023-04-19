@@ -2,14 +2,18 @@ package com.wsz.controller;
 
 
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.wsz.common.exception.CaptchaException;
 import com.wsz.common.lang.Result;
 import com.wsz.entity.TbDelay;
+import com.wsz.entity.TbEquipment;
 import com.wsz.entity.TbStock;
 import com.wsz.entity.TbUse;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -36,7 +40,6 @@ public class TbUseController extends BaseController {
 
         queryWrapper.eq("name", principal.getName());
 
-
         List<TbUse> useList = tbUseService.list(queryWrapper);
 
         return Result.suss(MapUtil.builder()
@@ -44,6 +47,20 @@ public class TbUseController extends BaseController {
                 .map()
         );
     }
+
+//    @GetMapping("/userInfo")
+//    private Result userInfo(TbUse tbUse) {
+//
+//        QueryWrapper<TbUse> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.eq("name", tbUse.getName());
+//
+//        List<TbUse> useList = tbUseService.list(queryWrapper);
+//
+//        return Result.suss(MapUtil.builder()
+//                .put("useList", useList)
+//                .map()
+//        );
+//    }
 
     @GetMapping("/returnInfo")
     public Result returnInfo(Principal principal) {
@@ -102,6 +119,7 @@ public class TbUseController extends BaseController {
 
     }
 
+
     @PostMapping("/returnSearch")
     public Result returnSearch(@RequestBody TbUse tbUse) {
 
@@ -143,25 +161,91 @@ public class TbUseController extends BaseController {
 
     }
 
+    @Transactional
     @PostMapping("/addUse")
     public Result addUse(@RequestBody TbUse tbUse) {
         //用于存放前端发送过来的使用信息数据
         List<TbUse> tbUseList = new ArrayList<>();
 
+        List<TbEquipment> equipmentList = tbEquipmentService.list();
+
         //用于存放用户使用的器材名称及器材分类数据
         List<Map<String, String>> equipments = tbUse.getEquipments();
 
+        System.out.println("-----------------");
+        System.out.println(equipments);
+        System.out.println(tbUse.getEquipments().getClass());
+
+
         //查询数据条件对象
         LambdaUpdateWrapper<TbStock> updateWrapper = Wrappers.lambdaUpdate();
+        updateWrapper.eq(TbStock::getWarehouse, tbUse.getWarehouse());
 
         //从数据库中取出库存表中的信息
-        List<TbStock> stockList = tbStockService.list();
+        List<TbStock> stockList = tbStockService.list(updateWrapper);
+
+        List<TbStock> addStock = new ArrayList<>();
+
+        boolean state = true;
+
+        //历遍前端发送过来的使用器材集合
+        for (int i = 0; i < equipments.size(); i++) {
+            //历遍数据库中所有的器材记录
+            for (int j = 0; j < equipmentList.size(); j++) {
+                //如果使用的器材与数据库中器材名称相等
+                if (equipments.get(i).get("value").equals(equipmentList.get(j).getEquipment())) {
+                    //判断该器材是否属于组合器材
+                    if (equipmentList.get(j).getCombination() == 1) {
+                        //如果是组合器材就历遍数据库库存表，查找该仓库是否有该器材
+                        for (int k = 0; k < stockList.size(); k++) {
+                            //如果有就直接将该器材添加到需要操作的库存列表中
+                            if (equipments.get(i).get("value").equals(stockList.get(k).getEquipment())) {
+                                TbStock tbStock = new TbStock();
+                                tbStock.setEquipment(equipments.get(i).get("value"));
+                                tbStock.setStock(Integer.valueOf(equipments.get(i).get("num")));
+                                tbStock.setWarehouse(tbUse.getWarehouse());
+                                addStock.add(tbStock);
+                                state = false;
+                                break;
+                            }
+                        }
+                        System.out.println("++++++++++++++");
+                        System.out.println(equipmentList.get(j).getEquipments());
+                        //如果该仓库库存中没有该组合器材，则将该组合器材中的器材数据添加到需要操作的库存列表中
+                        if (state) {
+                            //将字符串转为jsonarray
+                            JSONArray jsonArray = JSONUtil.parseArray(equipmentList.get(j).getEquipments());
+                            //历遍该jsonarray，将组合器材数据添加到需要操作的库存列表中
+                            for (int k = 0; k < jsonArray.size(); k++) {
+                                TbStock tbStock = new TbStock();
+                                tbStock.setEquipment(jsonArray.getJSONObject(k).getStr("equipment"));
+                                tbStock.setStock(jsonArray.getJSONObject(k).getInt("num") * Integer.valueOf(equipments.get(i).get("num")));
+                                tbStock.setWarehouse(tbUse.getWarehouse());
+                                addStock.add(tbStock);
+                            }
+                        }
+                        //如果不是组合器材则直接将器材数据添加到需要操作的库存列表中
+                    } else {
+                        TbStock tbStock = new TbStock();
+                        tbStock.setEquipment(equipments.get(i).get("value"));
+                        tbStock.setStock(Integer.valueOf(equipments.get(i).get("num")));
+                        tbStock.setWarehouse(tbUse.getWarehouse());
+                        addStock.add(tbStock);
+                    }
+                    state = true;
+                    break;
+                }
+            }
+            System.out.println("===============");
+            System.out.println(addStock);
+        }
 
         //存放用户使用器材的数量列表
         List<Integer> updateStock = new ArrayList<>();
 
         //整理前端发送过来的数据，并将对应数据存放到对应的列表中
         for (int i = 0; i < equipments.size(); i++) {
+
             TbUse use = new TbUse();
             use.setName(tbUse.getName());
 
@@ -174,41 +258,39 @@ public class TbUseController extends BaseController {
             use.setReturnDate(tbUse.getReturnDate());
             use.setReason(tbUse.getReason());
             use.setState(tbUse.getState());
+            tbUseList.add(use);
 
+        }
+
+        System.out.println(stockList);
+
+        int count = 0;
+
+        for (int i = 0; i < addStock.size(); i++) {
             for (int j = 0; j < stockList.size(); j++) {
-
-                if (stockList.get(j).getWarehouse().equals(use.getWarehouse())) {
-                    if (stockList.get(j).getEquipment().equals(use.getEquipment())) {
-                        if (stockList.get(j).getStock() >= use.getNum()) {
-
-                            updateStock.add(i, stockList.get(j).getStock() - use.getNum());
-
-                            tbUseList.add(use);
-                            if (tbUseList.size() == equipments.size()) {
-                                break;
-                            }
-                        }
+                if (addStock.get(i).getEquipment().equals(stockList.get(j).getEquipment())) {
+                    count++;
+                    if (addStock.get(i).getStock() > stockList.get(j).getStock()) {
+                        throw new CaptchaException(addStock.get(i).getEquipment() + " 库存不足！请确认仓库库存是否满足需求！");
                     }
+                    updateWrapper.eq(TbStock::getWarehouse, tbUse.getWarehouse());
+                    System.out.println(tbUse.getWarehouse());
+                    updateWrapper.eq(TbStock::getEquipment, addStock.get(i).getEquipment());
+                    System.out.println(addStock.get(i).getEquipment());
+                    List<TbStock> list = tbStockService.list(updateWrapper);
+                    System.out.println(list);
+                    updateWrapper.set(TbStock::getStock, (stockList.get(j).getStock() - addStock.get(i).getStock()));
+                    System.out.println(stockList.get(j).getStock() - addStock.get(i).getStock());
+                    tbStockService.update(null, updateWrapper);
+
+                    updateWrapper = Wrappers.lambdaUpdate();
+                    break;
                 }
             }
-
         }
 
-        //如果存在库存不足的情况，向前端用户提示库存不足
-        if (tbUseList.size() < equipments.size()) {
-            throw new CaptchaException("库存不足！请确认仓库库存满足需求！");
-        }
-
-        //如库存充足，将对应使用信息保存进数据库使用表中，并更改对应库存信息
-        for (int i = 0; i < tbUseList.size(); i++) {
-
-            updateWrapper.eq(TbStock::getWarehouse, tbUseList.get(i).getWarehouse());
-            updateWrapper.eq(TbStock::getEquipment, tbUseList.get(i).getEquipment());
-            updateWrapper.set(TbStock::getStock, updateStock.get(i));
-
-            tbStockService.update(null, updateWrapper);
-
-
+        if (addStock.size() != count) {
+            throw new CaptchaException("该仓库中没有相关库存！请核对使用器材是否在仓库中存在库存！");
         }
 
         tbUseService.saveBatch(tbUseList);
@@ -261,34 +343,92 @@ public class TbUseController extends BaseController {
                 null);
     }
 
-
+    @Transactional
     @PostMapping("/returnEquipment")
-    public Result returnEquipment (@RequestBody TbUse tbUse) {
+    public Result returnEquipment(@RequestBody TbUse tbUse) {
 
         System.out.println(tbUse);
 
         LambdaUpdateWrapper<TbUse> updateWrapper = Wrappers.lambdaUpdate();
 
         updateWrapper.eq(TbUse::getId, tbUse.getUseId());
-        updateWrapper.set(TbUse::getReturnDate,tbUse.getReturnTime());
-        updateWrapper.set(TbUse::getActualNum,tbUse.getActualNum());
+        updateWrapper.set(TbUse::getReturnDate, tbUse.getReturnTime());
+        updateWrapper.set(TbUse::getActualNum, tbUse.getActualNum());
         updateWrapper.set(TbUse::getState, 1);
 
         tbUseService.update(null, updateWrapper);
 
+        List<TbEquipment> equipments = tbEquipmentService.list();
+
         LambdaUpdateWrapper<TbStock> updateStock = Wrappers.lambdaUpdate();
-        QueryWrapper<TbStock> queryWrapper = new QueryWrapper<>();
-
-        queryWrapper.eq("warehouse",tbUse.getWarehouse());
-        queryWrapper.eq("equipment",tbUse.getEquipment());
-
-        TbStock tbStock = tbStockService.getOne(queryWrapper);
-
         updateStock.eq(TbStock::getWarehouse, tbUse.getWarehouse());
-        updateStock.eq(TbStock::getEquipment, tbUse.getEquipment());
-        updateStock.set(TbStock::getStock,tbStock.getStock() + tbUse.getActualNum());
 
-        tbStockService.update(null,updateStock);
+        List<TbStock> stockList = tbStockService.list(updateStock);
+
+        boolean state = true;
+
+        //历遍数据库中器材数据
+        for (int i = 0; i < equipments.size(); i++) {
+            //如果使用的器材与数据库中器材名称相等就进行判断是否属于组合器材
+            if (equipments.get(i).getEquipment().equals(tbUse.getEquipment())) {
+                //如果属于组合器材
+                if (equipments.get(i).getCombination() == 1) {
+                    //历遍该仓库的库存信息，查找是否有该器材的组合库存
+                    for (int j = 0; j < stockList.size(); j++) {
+                        //如果有，则直接在该库存上做操作
+                        if (tbUse.getEquipment().equals(stockList.get(j).getEquipment())) {
+                            updateStock = Wrappers.lambdaUpdate();
+                            updateStock.eq(TbStock::getWarehouse, tbUse.getWarehouse());
+                            updateStock.eq(TbStock::getEquipment, tbUse.getEquipment());
+                            updateStock.set(TbStock::getStock, stockList.get(j).getStock() + tbUse.getActualNum());
+                            tbStockService.update(null, updateStock);
+                            state = false;
+                            break;
+                        }
+                        //如果该仓库库存中没有该组合器材库存，则对组合器材的元素器材库存进行操作
+                        if (state) {
+                            //将字符串转为jsonarray
+                            JSONArray jsonArray = JSONUtil.parseArray(equipments.get(i).getEquipments());
+                            //历遍该jsonarray，将组合器材数据添加到需要操作的库存列表中
+                            for (int k = 0; k < jsonArray.size(); k++) {
+                                updateStock = Wrappers.lambdaUpdate();
+                                updateStock.eq(TbStock::getWarehouse, tbUse.getWarehouse());
+                                updateStock.eq(TbStock::getEquipment, jsonArray.getJSONObject(k).getStr("equipment"));
+                                Integer stock = tbStockService.getOne(updateStock).getStock();
+                                updateStock.set(TbStock::getStock, stock + (jsonArray.getJSONObject(k).getInt("num") * tbUse.getActualNum()));
+                                tbStockService.update(null, updateStock);
+                            }
+                        }
+                        state = true;
+                        break;
+                    }
+
+                } else {
+                    for (int j = 0; j < stockList.size(); j++) {
+                        if (equipments.get(i).getEquipment().equals(stockList.get(j).getEquipment())) {
+                            updateStock = Wrappers.lambdaUpdate();
+                            updateStock.eq(TbStock::getWarehouse, tbUse.getWarehouse());
+                            updateStock.eq(TbStock::getEquipment, tbUse.getEquipment());
+                            updateStock.set(TbStock::getStock, stockList.get(j).getStock() + tbUse.getActualNum());
+                            tbStockService.update(null, updateStock);
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+
+//        QueryWrapper<TbStock> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.eq("warehouse", tbUse.getWarehouse());
+//        queryWrapper.eq("equipment", tbUse.getEquipment());
+//        tbStock = tbStockService.getOne(queryWrapper);
+//
+//        updateStock.eq(TbStock::getWarehouse, tbUse.getWarehouse());
+//        updateStock.eq(TbStock::getEquipment, tbUse.getEquipment());
+//        updateStock.set(TbStock::getStock, tbStock.getStock() + tbUse.getActualNum());
+//
+//        tbStockService.update(null, updateStock);
 
         return Result.suss(200,
                 "归还器材成功",

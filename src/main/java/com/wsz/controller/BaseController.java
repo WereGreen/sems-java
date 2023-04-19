@@ -3,6 +3,7 @@ package com.wsz.controller;
 import com.wsz.service.*;
 import com.wsz.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,5 +48,11 @@ public class BaseController {
 
     @Autowired
     TbDelayService tbDelayService;
+
+    @Autowired
+    TbUpkeepService tbUpkeepService;
+
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
 
 }
